@@ -55,8 +55,13 @@
 
 <body class="p-4 md:p-8">
 
-    <div id="loading-overlay" class="fixed inset-0 bg-white bg-opacity-75 flex items-center justify-center z-50 transition-opacity duration-300">
-        <div class="text-xl font-bold text-green-700">Loading Assets...</div>
+    <!-- UPDATED Loading Overlay with Progress Bar -->
+    <div id="loading-overlay" class="fixed inset-0 bg-white bg-opacity-95 flex flex-col items-center justify-center z-50 transition-opacity duration-300">
+        <div class="text-2xl font-bold text-green-700 mb-4">Gathering the Chibi Assets...</div>
+        <div class="w-64 bg-green-200 rounded-full h-4 shadow-inner">
+            <div id="progressBar" class="bg-green-600 h-4 rounded-full transition-all duration-300" style="width: 0%"></div>
+        </div>
+        <div id="progressText" class="mt-2 text-green-800 font-medium">0% Loaded</div>
     </div>
 
     <div class="max-w-6xl mx-auto flex flex-col lg:flex-row gap-8">
@@ -88,9 +93,10 @@
         const CANVAS_WIDTH = 500;
         const CANVAS_HEIGHT = 600;
 
-        // NOTE: The GENERIC_PLACEHOLDER_URL below uses a valid Google Drive link provided previously.
+        // NOTE: These Google Drive links are the cause of the slow loading. 
+        // Consider moving images to GitHub or Imgur for faster web hosting.
         const GENERIC_PLACEHOLDER_URL = 'https://drive.google.com/uc?export=view&id=1Sbs6VVp7YA1_DznJ8KF_MfnfwE8nB-rF';
-        const BUTTON_PREVIEW_URL = 'https://placehold.co/64x64/a8b98b/fff?text=P'; // Used for button images
+        const BUTTON_PREVIEW_URL = 'https://placehold.co/64x64/a8b98b/fff?text=P'; 
 
         const ASSET_MAP = {
             // LAYER 1: BACKGROUNDS
@@ -174,6 +180,8 @@
         const controlsContainer = document.getElementById('controlsContainer');
         const loadingOverlay = document.getElementById('loading-overlay');
         const downloadButton = document.getElementById('downloadButton');
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
 
 
         // --- IMAGE LOADING LOGIC ---
@@ -198,6 +206,12 @@
             return paths;
         }
 
+        function updateProgress() {
+            const percent = imagesToLoad > 0 ? Math.floor((imagesLoaded / imagesToLoad) * 100) : 100;
+            progressBar.style.width = `${percent}%`;
+            progressText.textContent = `${percent}% Loaded`;
+        }
+
         function loadImages(callback) {
             const allPaths = collectAllImagePaths();
             imagesToLoad = allPaths.length;
@@ -210,18 +224,22 @@
             allPaths.forEach(item => {
                 const img = new Image();
                 img.crossOrigin = 'Anonymous'; // Required for some image hosts
-                img.onload = () => {
+                
+                const onAssetLoad = () => {
                     imagesLoaded++;
+                    updateProgress();
+                    
                     if (imagesLoaded === imagesToLoad && callback) {
-                        callback();
+                        // Wait a tiny moment for the progress bar to hit 100% smoothly
+                        setTimeout(callback, 300); 
                     }
                 };
+
+                img.onload = onAssetLoad;
                 img.onerror = () => {
                     console.error(`Failed to load: ${item.url}. Using simple placeholder.`);
-                    imagesLoaded++;
-                    if (imagesLoaded === imagesToLoad && callback) {
-                        callback();
-                    }
+                    // Treat failed load as loaded to avoid infinite wait
+                    onAssetLoad(); 
                 };
                 img.src = item.url;
                 IMAGES[item.url] = img; // Store image object
@@ -420,8 +438,11 @@
             // Initial draw
             drawCharacter();
 
-            // Hide loading overlay
-            loadingOverlay.classList.add('hidden');
+            // Hide loading overlay by setting opacity to 0 and removing it from flow
+            loadingOverlay.style.opacity = '0';
+            setTimeout(() => {
+                loadingOverlay.classList.add('hidden');
+            }, 500);
         }
 
         // Start the application flow
