@@ -257,13 +257,17 @@
 
         // --- CANVAS DRAWING LOGIC ---
         function drawBodyShape(color) {
-            // A simple placeholder shape to represent the body color. 
-            // This is for visual debugging if the actual body asset is missing.
+            /*
+            // NOTE: Commenting out the placeholder body shape. 
+            // If the skin tone assets are full-body layers, drawing this shape causes overlap.
+            // If the full-body asset layers are correctly provided (e.g., in a Pale skin tone.png file), 
+            // the canvas should draw those images instead.
             ctx.fillStyle = color;
             ctx.beginPath();
             ctx.arc(CANVAS_WIDTH / 2, CANVAS_HEIGHT * 0.3, 100, 0, Math.PI * 2);
             ctx.rect(CANVAS_WIDTH / 2 - 50, CANVAS_HEIGHT * 0.4, 100, 150);
             ctx.fill();
+            */
         }
 
         function drawCharacter() {
@@ -280,9 +284,15 @@
                 ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
             }
 
-            // 2. Draw Body (Skin Tone - using placeholder shape)
+            // 2. Draw Body (Skin Tone - using the full-size image layer if available)
             const bodyItem = ASSET_MAP.bodies[characterConfig.body];
-            drawBodyShape(bodyItem.color);
+            const bodyImg = IMAGES[getAbsoluteUrl(bodyItem.url)];
+            if (bodyImg && bodyImg.complete) {
+                ctx.drawImage(bodyImg, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+            } else {
+                 // Fallback to the old body shape helper if the body image layer is missing
+                 drawBodyShape(bodyItem.color);
+            }
             
             // Define the layer order (URL is the key to retrieve the Image object)
             // Layers must be drawn in the correct stacking order: back to front.
@@ -420,7 +430,7 @@
                 const faceSection = document.createElement('div');
                 const title = key.charAt(0).toUpperCase() + key.slice(1);
                 faceSection.innerHTML = `
-                    <h4 class="text-sm font-medium text-green-600 mb-1">${title}</h4>
+                    <h4 class="text-sm font-medium text-green-600 mb-1 shadow-text">${title}</h4>
                     <div id="options-${key}" class="flex gap-3 overflow-x-auto asset-scroll p-1"></div>
                 `;
                 const optionsContainer = faceSection.querySelector(`#options-${key}`);
