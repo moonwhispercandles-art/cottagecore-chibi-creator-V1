@@ -94,20 +94,23 @@
         const CANVAS_WIDTH = 500;
         const CANVAS_HEIGHT = 600;
 
-        // CRITICAL: The correct base URL for your GitHub asset repository.
+        // CRITICAL: The base URL for your GitHub asset repository.
         const BASE_ASSET_URL = 'https://raw.githubusercontent.com/moonwhispercandles-art/cottagecore-chibi-assets/main/'; 
+        
+        // FIX APPLIED: Assuming your files are in the root of the 'main' branch, this MUST be an empty string.
+        const ASSET_SUBFOLDER = ''; 
 
         // Placeholder URL for buttons that don't have a distinct preview image (like color buttons)
         const BUTTON_PREVIEW_URL = 'https://placehold.co/64x64/a8b98b/fff?text=P'; 
 
         // --- ASSET MAP: Defines all layers and options ---
         const ASSET_MAP = {
-            // NOTE: The 'url' property now just holds the file name, and the script prefixes it with BASE_ASSET_URL
+            // NOTE: The 'url' property now just holds the file name, and the script prefixes it with BASE_ASSET_URL + ASSET_SUBFOLDER
             
             // LAYER 1: BACKGROUNDS
             backgrounds: [
                 { name: 'Forest Glade', url: 'Forest Glade.png' },
-                { name: 'Rustic Cabin', url: 'Rustic Cabin.png' }, // Updated from 'Cabin Interior'
+                { name: 'Rustic Cabin', url: 'Rustic Cabin.png' },
             ],
             // LAYER 2: BODY / SKIN TONES (Drawn via color for simplicity, names updated)
             bodies: [
@@ -119,25 +122,24 @@
             // LAYERS 3-6: OUTFITS, FACE, HAIR, ACCESSORIES (Image files)
             outfits: [
                 { name: 'None', url: null },
-                { name: 'Frock', url: 'Frock.png' }, // Updated from 'Smock Dress'
+                { name: 'Frock', url: 'Frock.png' },
                 { name: 'Apron & Blouse', url: 'Apron and Blouse.png' },
                 { name: 'Jumpsuit', url: 'Jumpsuit.png' },
-                // Removed 'Corset Dress' as there was no file match
             ],
             face: {
                 eyes: [
                     { name: 'Eyes (Default)', url: 'Eyes 500x600.png' },
                 ],
                 eyebrows: [
-                    { name: 'Angry', url: 'Angry Eyebrow.png' }, // Updated from 'Eyebrows (Angry)'
-                    { name: 'Calm', url: 'Calm Eyebrow.png' }, // Updated from 'Eyebrows (Calm)'
+                    { name: 'Angry', url: 'Angry Eyebrow.png' },
+                    { name: 'Calm', url: 'Calm Eyebrow.png' },
                 ],
                 mouth: [
-                    { name: 'Open Mouth', url: 'Open Mouth.png' }, // Updated from 'Lips (Open)'
-                    { name: 'Small Lip', url: 'Small Lip.png' }, // Updated from 'Lips (Closed)'
+                    { name: 'Open Mouth', url: 'Open Mouth.png' },
+                    { name: 'Small Lip', url: 'Small Lip.png' },
                 ],
                 nose: [
-                    { name: 'Simple Nose', url: 'Nose.png' }, // Updated from 'Nose (Simple)'
+                    { name: 'Simple Nose', url: 'Nose.png' },
                     { name: 'Nose (None)', url: null },
                 ],
                 ears: [
@@ -147,14 +149,13 @@
             hairs: [
                 { name: 'None', url: null },
                 { name: 'Braided Crown', url: 'Braided Crown.png' },
-                { name: 'Long & Flowy', url: 'Long Hair.png' }, // Updated from 'Long & Flowy'
-                { name: 'Short Pixie', url: 'Pixie Cut.png' }, // Updated from 'Short Pixie'
+                { name: 'Long & Flowy', url: 'Long Hair.png' },
+                { name: 'Short Pixie', url: 'Pixie Cut.png' },
             ],
             accessories: [
                 { name: 'None', url: null },
                 { name: 'Flower Crown', url: 'Flower Crown.png' },
-                { name: 'Toadstool Cap', url: 'Toadstool Cap.png' }, // Updated from 'Mushroom Hat'
-                // Removed 'Woven Basket' as no file was provided
+                { name: 'Toadstool Cap', url: 'Toadstool Cap.png' },
                 { name: 'Acorn Necklace', url: 'Acorn Necklace.png' },
                 { name: 'Strawberry Earrings', url: 'Strawberry Earring.png' },
                 { name: 'Sling Bag', url: 'Sling Bag.png' },
@@ -194,7 +195,7 @@
         function getAbsoluteUrl(filename) {
             if (!filename) return null;
             // Combines the base URL with the filename
-            return BASE_ASSET_URL + filename;
+            return BASE_ASSET_URL + ASSET_SUBFOLDER + filename;
         }
 
         function collectAllImagePaths() {
@@ -246,10 +247,11 @@
 
                 img.onload = onAssetLoad;
                 img.onerror = () => {
-                    console.error(`Failed to load asset: ${absUrl}.`);
+                    console.error(`FAILED TO LOAD ASSET: ${absUrl}`);
                     // Treat failed load as loaded to avoid infinite wait, but logs the error
                     onAssetLoad(); 
                 };
+                console.log(`Attempting to load: ${absUrl}`); // Log the full path for debugging!
                 img.src = absUrl;
                 IMAGES[absUrl] = img; // Store image object
             });
@@ -257,17 +259,12 @@
 
         // --- CANVAS DRAWING LOGIC ---
         function drawBodyShape(color) {
-            /*
-            // NOTE: Commenting out the placeholder body shape. 
-            // If the skin tone assets are full-body layers, drawing this shape causes overlap.
-            // If the full-body asset layers are correctly provided (e.g., in a Pale skin tone.png file), 
-            // the canvas should draw those images instead.
+            // Placeholder/Fallback code for skin tone if the body layer image fails to load.
             ctx.fillStyle = color;
             ctx.beginPath();
             ctx.arc(CANVAS_WIDTH / 2, CANVAS_HEIGHT * 0.3, 100, 0, Math.PI * 2);
             ctx.rect(CANVAS_WIDTH / 2 - 50, CANVAS_HEIGHT * 0.4, 100, 150);
             ctx.fill();
-            */
         }
 
         function drawCharacter() {
@@ -276,10 +273,10 @@
             // 1. Draw Background
             const bgItem = ASSET_MAP.backgrounds[characterConfig.background];
             const bgImg = IMAGES[getAbsoluteUrl(bgItem.url)];
-            if (bgImg && bgImg.complete) {
+            if (bgImg && bgImg.complete && bgImg.naturalWidth > 0) {
                 ctx.drawImage(bgImg, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
             } else {
-                // Fallback to a solid color
+                // Fallback to a solid color if background image fails
                 ctx.fillStyle = '#f0f4e8';
                 ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
             }
@@ -287,10 +284,10 @@
             // 2. Draw Body (Skin Tone - using the full-size image layer if available)
             const bodyItem = ASSET_MAP.bodies[characterConfig.body];
             const bodyImg = IMAGES[getAbsoluteUrl(bodyItem.url)];
-            if (bodyImg && bodyImg.complete) {
+            if (bodyImg && bodyImg.complete && bodyImg.naturalWidth > 0) {
                 ctx.drawImage(bodyImg, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
             } else {
-                 // Fallback to the old body shape helper if the body image layer is missing
+                 // Fallback to the body shape helper if the body image layer is missing
                  drawBodyShape(bodyItem.color);
             }
             
@@ -319,7 +316,7 @@
                 if (filename) {
                     const absUrl = getAbsoluteUrl(filename);
                     const img = IMAGES[absUrl];
-                    if (img && img.complete) {
+                    if (img && img.complete && img.naturalWidth > 0) {
                         // Draw all layered assets at (0, 0)
                         ctx.drawImage(img, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
                     }
@@ -460,6 +457,9 @@
                 initUI();
             });
         });
+    </script>
+</body>
+</html>
     </script>
 </body>
 </html>
