@@ -4,21 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cottagecore Chibi Maker</title>
-    <!-- Load Tailwind CSS -->
+    <!-- Load Tailwind CSS for utility classes -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Load Merriweather font for the Cottagecore aesthetic -->
-    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght+400;700;900&display=swap" rel="stylesheet">
     
     <!-- Custom CSS -->
     <style>
         /* Base font and styling */
         body {
             font-family: 'Merriweather', serif;
-            background-color: #f8fcf5;
+            background-color: #f8fcf5; /* Very light, natural background */
             min-height: 100vh;
         }
 
-        /* Custom class to handle asset preview buttons */
+        /* Custom class to handle asset preview buttons scrolling */
         .asset-scroll {
             -webkit-overflow-scrolling: touch;
             scrollbar-width: none; /* Firefox */
@@ -28,9 +28,10 @@
             display: none; /* Chrome, Safari, Opera */
         }
 
+        /* Styling for buttons that show an image preview */
         .asset-button-preview {
-            width: 64px;
-            height: 64px;
+            width: 72px; /* Slightly larger size */
+            height: 72px;
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -40,7 +41,7 @@
 
         /* Selected Button Style */
         .selected-asset {
-            border-color: #4CAF50; /* A stronger green */
+            border-color: #4CAF50; /* A strong, friendly green */
             background-color: #e6f3e6; /* Light green background */
             box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.5); /* Green ring effect */
             transform: scale(1.05);
@@ -55,7 +56,7 @@
 
 <body class="p-4 md:p-8">
 
-    <!-- UPDATED Loading Overlay with Progress Bar -->
+    <!-- Loading Overlay with Progress Bar -->
     <div id="loading-overlay" class="fixed inset-0 bg-white bg-opacity-95 flex flex-col items-center justify-center z-50 transition-opacity duration-300">
         <div class="text-2xl font-bold text-green-700 mb-4">Gathering the Chibi Assets...</div>
         <div class="w-64 bg-green-200 rounded-full h-4 shadow-inner">
@@ -93,70 +94,74 @@
         const CANVAS_WIDTH = 500;
         const CANVAS_HEIGHT = 600;
 
-        // NOTE: These Google Drive links are the cause of the slow loading. 
-        // Consider moving images to GitHub or Imgur for faster web hosting.
-        const GENERIC_PLACEHOLDER_URL = 'https://drive.google.com/uc?export=view&id=1Sbs6VVp7YA1_DznJ8KF_MfnfwE8nB-rF';
+        // CRITICAL: The correct base URL for your GitHub asset repository.
+        const BASE_ASSET_URL = 'https://raw.githubusercontent.com/moonwhispercandles-art/cottagecore-chibi-assets/main/'; 
+
+        // Placeholder URL for buttons that don't have a distinct preview image (like color buttons)
         const BUTTON_PREVIEW_URL = 'https://placehold.co/64x64/a8b98b/fff?text=P'; 
 
+        // --- ASSET MAP: Defines all layers and options ---
         const ASSET_MAP = {
+            // NOTE: The 'url' property now just holds the file name, and the script prefixes it with BASE_ASSET_URL
+            
             // LAYER 1: BACKGROUNDS
             backgrounds: [
-                { name: 'Forest Glade', url: 'https://drive.google.com/uc?export=view&id=1x5-cLdObHHPmWo2KMqSQ1bmsbzsnMjYB' },
-                { name: 'Cabin Interior', url: 'https://drive.google.com/uc?export=view&id=1Sbs6VVp7YA1_DznJ8KF_MfnfwE8nB-rF' },
+                { name: 'Forest Glade', url: 'Forest Glade.png' },
+                { name: 'Rustic Cabin', url: 'Rustic Cabin.png' }, // Updated from 'Cabin Interior'
             ],
-            // LAYER 2: BODY / SKIN TONES
+            // LAYER 2: BODY / SKIN TONES (Drawn via color for simplicity, names updated)
             bodies: [
-                { name: 'Pale', color: '#f7e5d8' }, // Lighter Caramel
-                { name: 'Tan', color: '#cc9e7d' },
-                { name: 'Olive', color: '#b8a594' },
-                { name: 'Caramel', color: '#d4a373' }
+                { name: 'Pale', color: '#f7e5d8', url: 'Pale skin tone.png' }, 
+                { name: 'Tan', color: '#cc9e7d', url: 'Tan skin tone.png' },
+                { name: 'Olive', color: '#b8a594', url: 'Olive skin tone.png' },
+                { name: 'Caramel', color: '#d4a373', url: 'Caramel skin tone.png' }
             ], 
-            // LAYERS 3-6: OUTFITS, FACE, HAIR, ACCESSORIES
+            // LAYERS 3-6: OUTFITS, FACE, HAIR, ACCESSORIES (Image files)
             outfits: [
                 { name: 'None', url: null },
-                { name: 'Smock Dress', url: 'https://drive.google.com/uc?export=view&id=1a0lYgpvJ4sjPRBrvDvnVU1E_gWXvzMKz' },
-                { name: 'Apron & Blouse', url: 'https://drive.google.com/uc?export=view&id=1u0Sd1AbI-zqVA-YJk1faLNqcu_ZvoDeh' },
-                { name: 'JumpSuit', url: 'https://drive.google.com/uc?export=view&id=1TzwfbEsZRMBy1kJ4a5YaAuiV3iOIi7Y9' },
-                { name: 'Corset Dress', url: 'https://drive.google.com/uc?export=view&id=1m5t9-JNQulP_TplFcS9KBbHjLvNvUXwB' },
+                { name: 'Frock', url: 'Frock.png' }, // Updated from 'Smock Dress'
+                { name: 'Apron & Blouse', url: 'Apron and Blouse.png' },
+                { name: 'Jumpsuit', url: 'Jumpsuit.png' },
+                // Removed 'Corset Dress' as there was no file match
             ],
             face: {
                 eyes: [
-                    { name: 'Eyes (Default)', url: 'https://drive.google.com/uc?export=view&id=1-ORbNJSRlkHUTFSxRklJW4yAIhGAgen4' },
+                    { name: 'Eyes (Default)', url: 'Eyes 500x600.png' },
                 ],
                 eyebrows: [
-                    { name: 'Eyebrows (Angry)', url: 'https://drive.google.com/uc?export=view&id=1xWSEYGDn8yN8Ldp41FCK0lfpleHraKIa' },
-                    { name: 'Eyebrows (Calm)', url: 'https://drive.google.com/uc?export=view&id=1SWsnt7qUdGwyzq9MooFMF-phGjH8A9rE' },
+                    { name: 'Angry', url: 'Angry Eyebrow.png' }, // Updated from 'Eyebrows (Angry)'
+                    { name: 'Calm', url: 'Calm Eyebrow.png' }, // Updated from 'Eyebrows (Calm)'
                 ],
                 mouth: [
-                    { name: 'Lips (Open)', url: 'https://drive.google.com/uc?export=view&id=1VBHrvoj50eayNEpdwXhgqWtsdZVqczVw' },
-                    { name: 'Lips (Closed)', url: 'https://drive.google.com/uc?export=view&id=1mjpQ1pT_VL9SlLiIzkHIt7Y1NgbRlB6I' },
+                    { name: 'Open Mouth', url: 'Open Mouth.png' }, // Updated from 'Lips (Open)'
+                    { name: 'Small Lip', url: 'Small Lip.png' }, // Updated from 'Lips (Closed)'
                 ],
                 nose: [
-                    { name: 'Nose (Simple)', url: 'https://drive.google.com/uc?export=view&id=1gfgLgGeU_2RcrxFaHGdd3pkY7J3MtHhf' },
+                    { name: 'Simple Nose', url: 'Nose.png' }, // Updated from 'Nose (Simple)'
                     { name: 'Nose (None)', url: null },
                 ],
                 ears: [
-                    { name: 'Ears (Default)', url: 'https://drive.google.com/uc?export=view&id=1jXD7yuSAZD8b4VxY3KZSg4eLynDu8JIf' },
+                    { name: 'Ears (Default)', url: 'Ears 500x600.png' },
                 ]
             },
             hairs: [
                 { name: 'None', url: null },
-                { name: 'Braided Crown', url: 'https://drive.google.com/uc?export=view&id=1S6RIW17wH9V-ya4A_Tngr95i73hf23R5' },
-                { name: 'Long & Flowy', url: 'https://drive.google.com/uc?export=view&id=1ZoF6KBaqfZFOEn5KGWxRvprJh4p8F5Ef' },
-                { name: 'Short Pixie', url: 'https://drive.google.com/uc?export=view&id=1koz2LxyqiuTKRnxjYJiNtaNPy9o38eFM' },
+                { name: 'Braided Crown', url: 'Braided Crown.png' },
+                { name: 'Long & Flowy', url: 'Long Hair.png' }, // Updated from 'Long & Flowy'
+                { name: 'Short Pixie', url: 'Pixie Cut.png' }, // Updated from 'Short Pixie'
             ],
             accessories: [
                 { name: 'None', url: null },
-                { name: 'Flower Crown', url: 'https://drive.google.com/uc?export=view&id=1nneCPY4rJNBRlCtWHAPFpmbUhmqZMQ7a' },
-                { name: 'Mushroom Hat', url: 'https://drive.google.com/uc?export=view&id=1MwXOm-OgKISzAfRukF_f3rPV77KcNORo' },
-                { name: 'Woven Basket', url: 'https://drive.google.com/uc?export=view&id=196SWH7sTrsp3oyPpR8DUbkDufq6XYkQW' },
-                { name: 'Acorn Necklace', url: 'https://drive.google.com/uc?export=view&id=1hcdVu6cpY08nwupj8uglb82iaiB-leaP' },
-                { name: 'Strawberry Earrings', url: 'https://drive.google.com/uc?export=view&id=1JemJ_x4gv7SbcXx1PkoURVZWRq5ssRT0' },
-                { name: 'Sling Bag', url: 'https://drive.google.com/uc?export=view&id=19OyhgtsLPwezdBskk0cwZrhPNUvD9Cl8' },
+                { name: 'Flower Crown', url: 'Flower Crown.png' },
+                { name: 'Toadstool Cap', url: 'Toadstool Cap.png' }, // Updated from 'Mushroom Hat'
+                // Removed 'Woven Basket' as no file was provided
+                { name: 'Acorn Necklace', url: 'Acorn Necklace.png' },
+                { name: 'Strawberry Earrings', url: 'Strawberry Earring.png' },
+                { name: 'Sling Bag', url: 'Sling Bag.png' },
             ],
         };
 
-        // State management
+        // State management: Stores the index of the selected item for each layer
         let characterConfig = {
             background: 0,
             body: 0,
@@ -170,6 +175,7 @@
             ears: 0,
         };
 
+        // Stores all loaded Image objects, keyed by their full absolute URL
         const IMAGES = {};
         let imagesToLoad = 0;
         let imagesLoaded = 0;
@@ -185,23 +191,27 @@
 
 
         // --- IMAGE LOADING LOGIC ---
+        function getAbsoluteUrl(filename) {
+            if (!filename) return null;
+            // Combines the base URL with the filename
+            return BASE_ASSET_URL + filename;
+        }
+
         function collectAllImagePaths() {
             const paths = [];
             // Collect all unique URLs from ASSET_MAP
-            ['backgrounds', 'outfits', 'hairs', 'accessories'].forEach(category => {
+            ['backgrounds', 'bodies', 'outfits', 'hairs', 'accessories'].forEach(category => {
                 ASSET_MAP[category].forEach(item => {
-                    if (item.url && item.url !== GENERIC_PLACEHOLDER_URL && !IMAGES[item.url]) paths.push(item);
+                    const absUrl = getAbsoluteUrl(item.url);
+                    if (absUrl && !IMAGES[absUrl]) paths.push(absUrl);
                 });
             });
             Object.keys(ASSET_MAP.face).forEach(category => {
                 ASSET_MAP.face[category].forEach(item => {
-                    if (item.url && item.url !== GENERIC_PLACEHOLDER_URL && !IMAGES[item.url]) paths.push(item);
+                    const absUrl = getAbsoluteUrl(item.url);
+                    if (absUrl && !IMAGES[absUrl]) paths.push(absUrl);
                 });
             });
-
-            // Manually add the generic placeholder if not already added, as it's used for drawing and buttons
-            const genericItem = { name: 'Placeholder', url: GENERIC_PLACEHOLDER_URL };
-            if (!IMAGES[GENERIC_PLACEHOLDER_URL]) paths.push(genericItem);
             
             return paths;
         }
@@ -221,39 +231,37 @@
                 return;
             }
 
-            allPaths.forEach(item => {
+            allPaths.forEach(absUrl => {
                 const img = new Image();
-                img.crossOrigin = 'Anonymous'; // Required for some image hosts
+                img.crossOrigin = 'Anonymous'; // Required for cross-origin hosting like GitHub Raw
                 
                 const onAssetLoad = () => {
                     imagesLoaded++;
                     updateProgress();
                     
                     if (imagesLoaded === imagesToLoad && callback) {
-                        // Wait a tiny moment for the progress bar to hit 100% smoothly
                         setTimeout(callback, 300); 
                     }
                 };
 
                 img.onload = onAssetLoad;
                 img.onerror = () => {
-                    console.error(`Failed to load: ${item.url}. Using simple placeholder.`);
-                    // Treat failed load as loaded to avoid infinite wait
+                    console.error(`Failed to load asset: ${absUrl}.`);
+                    // Treat failed load as loaded to avoid infinite wait, but logs the error
                     onAssetLoad(); 
                 };
-                img.src = item.url;
-                IMAGES[item.url] = img; // Store image object
+                img.src = absUrl;
+                IMAGES[absUrl] = img; // Store image object
             });
         }
 
         // --- CANVAS DRAWING LOGIC ---
         function drawBodyShape(color) {
-            // Draws a very basic chibi body shape
+            // A simple placeholder shape to represent the body color. 
+            // This is for visual debugging if the actual body asset is missing.
             ctx.fillStyle = color;
             ctx.beginPath();
-            // Head shape - simple circle
             ctx.arc(CANVAS_WIDTH / 2, CANVAS_HEIGHT * 0.3, 100, 0, Math.PI * 2);
-            // Body shape - simple rectangle
             ctx.rect(CANVAS_WIDTH / 2 - 50, CANVAS_HEIGHT * 0.4, 100, 150);
             ctx.fill();
         }
@@ -263,51 +271,47 @@
             
             // 1. Draw Background
             const bgItem = ASSET_MAP.backgrounds[characterConfig.background];
-            const bgImg = IMAGES[bgItem.url];
+            const bgImg = IMAGES[getAbsoluteUrl(bgItem.url)];
             if (bgImg && bgImg.complete) {
                 ctx.drawImage(bgImg, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
             } else {
-                // Fallback to a solid color if image fails to load
+                // Fallback to a solid color
                 ctx.fillStyle = '#f0f4e8';
                 ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
             }
 
-            // 2. Draw Body (Skin Tone - using placeholder shape for sandbox compatibility)
+            // 2. Draw Body (Skin Tone - using placeholder shape)
             const bodyItem = ASSET_MAP.bodies[characterConfig.body];
             drawBodyShape(bodyItem.color);
             
             // Define the layer order (URL is the key to retrieve the Image object)
+            // Layers must be drawn in the correct stacking order: back to front.
             const layers = [];
 
-            // 3. Outfit
+            // 3. Outfit (Below face, above body)
             layers.push(ASSET_MAP.outfits[characterConfig.outfit].url);
 
-            // 4. Face Parts (order matters: ears/nose below eyes/mouth)
+            // 4. Face Parts (Order matters: ears/nose below eyes/mouth)
             layers.push(ASSET_MAP.face.ears[characterConfig.ears].url);
             layers.push(ASSET_MAP.face.nose[characterConfig.nose].url);
             layers.push(ASSET_MAP.face.eyes[characterConfig.eyes].url);
             layers.push(ASSET_MAP.face.eyebrows[characterConfig.eyebrows].url);
             layers.push(ASSET_MAP.face.mouth[characterConfig.mouth].url);
             
-            // 5. Hair (Should layer on top of face parts)
+            // 5. Hair (On top of face)
             layers.push(ASSET_MAP.hairs[characterConfig.hair].url);
             
-            // 6. Accessories (Should layer on top of everything)
+            // 6. Accessories (On top of everything else)
             layers.push(ASSET_MAP.accessories[characterConfig.accessory].url);
             
             // Draw all layered items
-            layers.forEach(url => {
-                if (url) {
-                    const img = IMAGES[url];
+            layers.forEach(filename => {
+                if (filename) {
+                    const absUrl = getAbsoluteUrl(filename);
+                    const img = IMAGES[absUrl];
                     if (img && img.complete) {
                         // Draw all layered assets at (0, 0)
                         ctx.drawImage(img, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-                    } else if (url === GENERIC_PLACEHOLDER_URL) {
-                        // Draw the generic placeholder if it's the one we expect to fail loading
-                        const placeholderImg = IMAGES[GENERIC_PLACEHOLDER_URL];
-                        if (placeholderImg && placeholderImg.complete) {
-                            ctx.drawImage(placeholderImg, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-                        }
                     }
                 }
             });
@@ -329,7 +333,7 @@
         function createOptionButton(item, categoryKey, index) {
             const button = document.createElement('button');
             button.textContent = item.name;
-            button.className = 'p-2 md:p-3 bg-white border border-green-300 rounded-xl text-green-800 font-medium hover:bg-green-100 transition-all text-sm whitespace-nowrap active:scale-95';
+            button.className = 'p-2 md:p-3 bg-white border-2 border-green-300 rounded-xl text-green-800 font-medium hover:bg-green-100 transition-all text-sm whitespace-nowrap active:scale-95';
 
             if (index === characterConfig[categoryKey]) {
                 button.classList.add('selected-asset');
@@ -344,9 +348,8 @@
             // Use image preview for buttons
             else if (item.url) {
                 button.classList.add('asset-button-preview'); 
-                // Use the item's actual URL for the background if available, otherwise use the placeholder
-                const previewUrl = (item.url !== GENERIC_PLACEHOLDER_URL) ? item.url : BUTTON_PREVIEW_URL;
-                button.style.backgroundImage = `url(${previewUrl})`; 
+                const absUrl = getAbsoluteUrl(item.url);
+                button.style.backgroundImage = `url(${absUrl})`; 
                 button.textContent = ''; // Clear text content for image preview
             }
 
@@ -399,15 +402,11 @@
 
         // --- INITIALIZATION ---
         function initUI() {
-            // Background
+            // Initialize all control sections
             createControlSection('Background', 'background', ASSET_MAP.backgrounds);
-            // Body / Skin Tone
             createControlSection('Body / Skin Tone', 'body', ASSET_MAP.bodies);
-            // Outfit
             createControlSection('Outfit', 'outfit', ASSET_MAP.outfits);
-            // Hair
             createControlSection('Hair', 'hair', ASSET_MAP.hairs);
-            // Accessories
             createControlSection('Accessories', 'accessory', ASSET_MAP.accessories);
             
             // Face Parts (Grouped)
@@ -416,7 +415,7 @@
             faceContainer.innerHTML = '<h3 class="text-lg font-semibold text-green-700 mb-2 shadow-text">Facial Features</h3>';
             controlsContainer.appendChild(faceContainer);
 
-            // Dynamic creation for sub-categories
+            // Dynamic creation for face sub-categories
             Object.keys(ASSET_MAP.face).forEach(key => {
                 const faceSection = document.createElement('div');
                 const title = key.charAt(0).toUpperCase() + key.slice(1);
@@ -438,14 +437,14 @@
             // Initial draw
             drawCharacter();
 
-            // Hide loading overlay by setting opacity to 0 and removing it from flow
+            // Hide loading overlay 
             loadingOverlay.style.opacity = '0';
             setTimeout(() => {
                 loadingOverlay.classList.add('hidden');
             }, 500);
         }
 
-        // Start the application flow
+        // Start the application flow on window load
         window.addEventListener('load', () => {
             loadImages(() => {
                 initUI();
